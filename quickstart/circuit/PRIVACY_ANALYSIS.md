@@ -221,3 +221,4 @@ pub fn close_position(...) -> (pub Field, pub Field) {
 3. **Should we hide account addresses?** (Requires note-based system)
 4. **What's the priority?** (Privacy vs. Operational efficiency)
 
+

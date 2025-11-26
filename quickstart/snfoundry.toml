@@ -1,3 +1,7 @@
 [sncast.default]
 url = "https://ztarknet-madara.d.karnot.xyz"
-account = "ztarknet"
+ account = "ztarknet" 
+
+[sncast.oracle_admin]
+   url = "https://ztarknet-madara.d.karnot.xyz"
+   account = "oracle_admin"

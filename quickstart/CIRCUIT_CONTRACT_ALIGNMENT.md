@@ -165,3 +165,4 @@ The key question: **Does Garaga automatically extract all `pub` return values fr
 3. **Regenerate Verifier**: Run `garaga gen` again after circuit update
 4. **Test Integration**: Create a test proof and verify it works with contracts
 
+

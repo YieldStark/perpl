@@ -100,3 +100,4 @@ The vault needs to handle payouts/losses without knowing exact amounts. Options:
 
 This matches the privacy model of systems like Zcash and Tornado Cash! 🎉
 
+

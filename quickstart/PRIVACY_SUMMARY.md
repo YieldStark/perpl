@@ -92,3 +92,4 @@ Only commitments and market IDs are public, matching the privacy model of system
 
 **You're building a truly private perpetual DEX!** 🚀
 
+

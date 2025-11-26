@@ -11,6 +11,11 @@ pub mod core {
     pub mod verifier;
 }
 
+// Mock contracts for local testing
+pub mod mocks {
+    pub mod mock_oracle;
+}
+
 // Position logic (libraries)
 pub mod position {
     pub mod decrease_position_utils;
