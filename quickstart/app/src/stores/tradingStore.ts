@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Account } from 'starknet';
+import { MARKETS } from '../config/contracts';
 
 // Types
 export interface Position {
@@ -12,6 +13,8 @@ export interface Position {
   margin?: string;
   pnl?: string;
   timestamp: number;
+  traderSecret?: string; // Secret used for commitment (needed for closing)
+  leverage?: number; // Leverage used (needed for PnL calculation)
 }
 
 export interface Order {
@@ -82,7 +85,7 @@ export const useTradingStore = create<TradingState>((set) => ({
   isSepoliaConnected: false,
   isZtarknetReady: false,
   availableBalance: '0',
-  selectedMarket: '0x4244432f555344', // BTC/USD default
+  selectedMarket: MARKETS.BTC_USD, // BTC/USD default
   positions: [],
   orders: [],
   markets: [],

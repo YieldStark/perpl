@@ -50,7 +50,16 @@ export function MarketSelector() {
         const marketDataPromises = [[MARKETS.BTC_USD, 'BTC_USD']].map(async ([marketId, key]) => {
           try {
             const priceData = await fetchPythPrice();
+            console.log('MarketSelector: Fetched price from Pyth:', priceData);
+            
+            // Ensure price is valid
+            if (!priceData || !priceData.price || priceData.price <= 0 || isNaN(priceData.price)) {
+              console.warn('MarketSelector: Invalid price data from Pyth:', priceData);
+              throw new Error('Invalid price data');
+            }
+            
             const price = priceData.price.toString();
+            console.log('MarketSelector: Setting price to:', price);
 
             return {
               marketId,
@@ -61,11 +70,12 @@ export function MarketSelector() {
               openInterest: mockOpenInterest.toString(),
             };
           } catch (error) {
-            // Silently handle errors and return default data
+            console.error('MarketSelector: Error fetching price for', marketId, error);
+            // Return with a fallback price instead of '0' to help debug
             return {
               marketId,
               symbol: MARKET_INFO[marketId as keyof typeof MARKET_INFO]?.symbol || key,
-              currentPrice: '0',
+              currentPrice: '0', // Will show as 0 if fetch fails
               priceChange24h: mockPriceChangePercent.toString(),
               volume24h: mockVolume24h.toString(),
               openInterest: mockOpenInterest.toString(),
@@ -74,6 +84,7 @@ export function MarketSelector() {
         });
 
         const marketData = (await Promise.all(marketDataPromises)).filter(Boolean);
+        console.log('MarketSelector: Setting markets data:', marketData);
         setMarkets(marketData);
       } catch (error) {
         console.error('Error fetching market prices:', error);
@@ -138,19 +149,24 @@ export function MarketSelector() {
           </div>
 
           {/* Right: Market Stats */}
-          {currentMarket && currentMarket.currentPrice && (
+          {currentMarket ? (
             <div className="flex items-center gap-8 text-xs">
               <div className="flex flex-col">
                 <span className="text-white/50 text-[10px] mb-0.5 underline">Mark</span>
                 <span className="text-white font-medium text-sm">
-                  {formatPrice(currentMarket.currentPrice)}
+                  {currentMarket.currentPrice && parseFloat(currentMarket.currentPrice) > 0
+                    ? formatPrice(currentMarket.currentPrice)
+                    : 'Loading...'}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-white/50 text-[10px] mb-0.5 underline">Oracle</span>
                 <span className="text-white font-medium text-sm">
                   {(() => {
-                    const markPrice = parseFloat(currentMarket.currentPrice || '0');
+                    if (!currentMarket.currentPrice || parseFloat(currentMarket.currentPrice) <= 0) {
+                      return 'Loading...';
+                    }
+                    const markPrice = parseFloat(currentMarket.currentPrice);
                     // Oracle price is slightly different (like in the image: Mark 91,168 vs Oracle 91,206)
                     const oraclePrice = markPrice + (markPrice * 0.0004); // ~0.04% difference
                     return formatPrice(oraclePrice.toString());
@@ -190,6 +206,17 @@ export function MarketSelector() {
                     {fundingCountdown}
                   </span>
                 </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-8 text-xs">
+              <div className="flex flex-col">
+                <span className="text-white/50 text-[10px] mb-0.5 underline">Mark</span>
+                <span className="text-white font-medium text-sm">Loading...</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white/50 text-[10px] mb-0.5 underline">Oracle</span>
+                <span className="text-white font-medium text-sm">Loading...</span>
               </div>
             </div>
           )}

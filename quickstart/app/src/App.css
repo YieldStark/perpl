@@ -696,6 +696,12 @@
   gap: 8px;
 }
 
+.trading-positions-privacy-note {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .trading-interface-right {
   width: 320px;
   display: flex;

@@ -229,7 +229,7 @@ function App() {
           <Portfolio onNavigate={(page) => setCurrentPage(page)} />
         </ErrorBoundary>
       ) : (
-        <div className="container">
+    <div className="container">
           {/* Tailwind CSS Test Banner */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 mb-4 rounded-lg shadow-lg">
             <div className="flex items-center justify-between">
@@ -247,7 +247,7 @@ function App() {
             </div>
           </div>
 
-          <nav className="app-nav">
+      <nav className="app-nav">
             <button 
               className={(currentPage as string) === 'trading' ? 'active' : ''}
               onClick={() => setCurrentPage('trading')}
@@ -260,28 +260,28 @@ function App() {
             >
               Portfolio
             </button>
-            <button 
-              className={currentPage === 'faucet' ? 'active' : ''}
-              onClick={() => setCurrentPage('faucet')}
-            >
-              yUSD Faucet
-            </button>
-            <button 
-              className={currentPage === 'proof' ? 'active' : ''}
-              onClick={() => setCurrentPage('proof')}
-            >
-              Proof Generation
-            </button>
-          </nav>
+        <button 
+          className={currentPage === 'faucet' ? 'active' : ''}
+          onClick={() => setCurrentPage('faucet')}
+        >
+          yUSD Faucet
+        </button>
+        <button 
+          className={currentPage === 'proof' ? 'active' : ''}
+          onClick={() => setCurrentPage('proof')}
+        >
+          Proof Generation
+        </button>
+      </nav>
 
-          {currentPage === 'faucet' ? (
-            <Faucet />
-          ) : (
-            <>
-              <h1>Noir Proof Generation & Starknet Verification</h1>
-              
-              <div className="state-machine">
-                <div className="input-section">
+      {currentPage === 'faucet' ? (
+        <Faucet />
+      ) : (
+        <>
+          <h1>Noir Proof Generation & Starknet Verification</h1>
+          
+          <div className="state-machine">
+        <div className="input-section">
           <div className="input-group">
             <label htmlFor="input-x">X:</label>
             <input 
@@ -310,31 +310,31 @@ function App() {
           </div>
         </div>
         
-                {renderStateIndicator(ProofState.GeneratingWitness, proofState.state)}
-                {renderStateIndicator(ProofState.GeneratingProof, proofState.state)}
-                {renderStateIndicator(ProofState.PreparingCalldata, proofState.state)}
-                {renderStateIndicator(ProofState.ConnectingWallet, proofState.state)}
-                {renderStateIndicator(ProofState.SendingTransaction, proofState.state)}
-              </div>
-              
-              {proofState.error && (
-                <div className="error-message">
-                  Error at stage '{proofState.state}': {proofState.error}
-                </div>
-              )}
-              
-              <div className="controls">
-                {proofState.state === ProofState.Initial && !proofState.error && (
-                  <button className="primary-button" onClick={startProcess}>Start</button>
-                )}
-                
-                {(proofState.error || proofState.state === ProofState.ProofVerified) && (
-                  <button className="reset-button" onClick={resetState}>Reset</button>
-                )}
-              </div>
-            </>
-          )}
+        {renderStateIndicator(ProofState.GeneratingWitness, proofState.state)}
+        {renderStateIndicator(ProofState.GeneratingProof, proofState.state)}
+        {renderStateIndicator(ProofState.PreparingCalldata, proofState.state)}
+        {renderStateIndicator(ProofState.ConnectingWallet, proofState.state)}
+        {renderStateIndicator(ProofState.SendingTransaction, proofState.state)}
+      </div>
+      
+      {proofState.error && (
+        <div className="error-message">
+          Error at stage '{proofState.state}': {proofState.error}
         </div>
+      )}
+      
+      <div className="controls">
+        {proofState.state === ProofState.Initial && !proofState.error && (
+          <button className="primary-button" onClick={startProcess}>Start</button>
+        )}
+        
+        {(proofState.error || proofState.state === ProofState.ProofVerified) && (
+          <button className="reset-button" onClick={resetState}>Reset</button>
+        )}
+      </div>
+        </>
+      )}
+    </div>
       )}
     </>
   )

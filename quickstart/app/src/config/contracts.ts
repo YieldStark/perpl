@@ -29,14 +29,15 @@ export const NETWORK = {
 } as const;
 
 // Market IDs for Ztarknet (used in contracts)
+// Contracts expect the string format directly (e.g., "BTC/USD") as felt252
 export const MARKETS = {
-  BTC_USD: '0x4244432f555344', // "BTC/USD" as felt252
-  ETH_USD: '0x4554482f555344', // "ETH/USD" as felt252
-  LORDS_USD: '0x4c4f5244532f555344',
-  STRK_USD: '0x5354524b2f555344',
-  EKUBO_USD: '0x454b55424f2f555344',
-  DOG_USD: '0x444f472f555344',
-  BROTHER_USDPLUS: '0x42524f544845522f555344504c5553',
+  BTC_USD: 'BTC/USD', // String format as felt252
+  ETH_USD: 'ETH/USD', // String format as felt252
+  LORDS_USD: 'LORDS/USD',
+  STRK_USD: 'STRK/USD',
+  EKUBO_USD: 'EKUBO/USD',
+  DOG_USD: 'DOG/USD',
+  BROTHER_USDPLUS: 'BROTHER/USD+',
 } as const;
 
 // Market display info

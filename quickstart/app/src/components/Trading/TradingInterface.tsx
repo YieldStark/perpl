@@ -5,6 +5,7 @@ import { PriceChart } from './PriceChart';
 import { useTradingStore } from '../../stores/tradingStore';
 import { Header } from '../Layout/Header';
 import { useState } from 'react';
+import { useOraclePriceUpdater } from '../../hooks/useOraclePriceUpdater';
 import '../../App.css';
 
 interface TradingInterfaceProps {
@@ -14,6 +15,9 @@ interface TradingInterfaceProps {
 export function TradingInterface({ onNavigate }: TradingInterfaceProps) {
   const positions = useTradingStore((state) => state.positions);
   const [activeTab, setActiveTab] = useState<'orderbook' | 'trades'>('orderbook');
+  
+  // Update oracle prices from price feed (every 60 seconds)
+  useOraclePriceUpdater(60000);
 
   return (
     <div className="trading-interface-container">
@@ -32,17 +36,24 @@ export function TradingInterface({ onNavigate }: TradingInterfaceProps) {
 
           {/* Positions Panel - Below Chart, Scrollable */}
           <div className="trading-positions-panel">
-            <div className="trading-positions-title">Positions</div>
+            <div className="trading-positions-title">Positions ({positions.length})</div>
             {positions.length === 0 ? (
               <div className="trading-positions-empty">
                 No open positions
               </div>
             ) : (
-              <div className="trading-positions-list">
-                {positions.map((position) => (
-                  <PositionCard key={position.commitment} position={position} />
-                ))}
-              </div>
+              <>
+                <div className="trading-positions-list">
+                  {positions.map((position) => (
+                    <PositionCard key={position.commitment} position={position} />
+                  ))}
+                </div>
+                <div className="trading-positions-privacy-note">
+                  <p className="text-xs text-gray-500 text-center italic">
+                    ALL TRADING INFO ARE PRIVATE AND VERIFIED BY ZK PROOFS
+                  </p>
+                </div>
+              </>
             )}
           </div>
         </div>
