@@ -1283,3 +1283,637 @@ button {
     opacity: 1;
   }
 }
+
+/* Ztarknet Provision Modal Styles */
+.ztarknet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-overlay {
+    padding: 24px;
+  }
+}
+
+.ztarknet-modal-container {
+  background: linear-gradient(to bottom right, #0f1a1f, #101d24, #0a1216);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 896px;
+  padding: 32px;
+  position: relative;
+  color: white;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-container {
+    padding: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ztarknet-modal-container {
+    padding: 48px;
+  }
+}
+
+.ztarknet-modal-gradient-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 384px;
+  height: 384px;
+  background-color: rgba(80, 210, 193, 0.05);
+  border-radius: 50%;
+  filter: blur(48px);
+  transform: translateY(-50%) translateX(50%);
+  pointer-events: none;
+}
+
+.ztarknet-modal-close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s;
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 10;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-close-btn {
+    top: 32px;
+    right: 32px;
+  }
+}
+
+.ztarknet-modal-close-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ztarknet-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-content {
+    gap: 40px;
+  }
+}
+
+.ztarknet-modal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .ztarknet-modal-header {
+    flex-direction: row;
+  }
+}
+
+.ztarknet-modal-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: linear-gradient(to bottom right, #50d2c1, #2ab09a, #1a7a6b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 25px -5px rgba(80, 210, 193, 0.2);
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-icon {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+.ztarknet-modal-header-text {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.ztarknet-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: linear-gradient(to right, white, rgba(255, 255, 255, 0.8));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-title {
+    font-size: 30px;
+  }
+}
+
+.ztarknet-modal-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 672px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-description {
+    font-size: 16px;
+  }
+}
+
+.ztarknet-modal-grid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .ztarknet-modal-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+.ztarknet-modal-section {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-section {
+    padding: 32px;
+  }
+}
+
+.ztarknet-modal-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.ztarknet-modal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ztarknet-modal-step {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.ztarknet-modal-step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.ztarknet-modal-step-content {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  transition: background-color 0.2s;
+}
+
+.ztarknet-modal-step-content:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.ztarknet-modal-step-icon {
+  flex-shrink: 0;
+}
+
+.ztarknet-modal-step-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ztarknet-modal-step-attempt {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: auto;
+  font-family: monospace;
+}
+
+.ztarknet-modal-status-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ztarknet-modal-status-icon.error {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+.ztarknet-modal-status-icon.loading {
+  background-color: rgba(80, 210, 193, 0.2);
+  border: 1px solid rgba(80, 210, 193, 0.4);
+}
+
+.ztarknet-modal-status-icon.success {
+  background-color: rgba(80, 210, 193, 0.2);
+  border: 1px solid rgba(80, 210, 193, 0.4);
+}
+
+.ztarknet-modal-status-icon.pending {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ztarknet-modal-address-container {
+  padding: 16px;
+  background-color: rgba(11, 20, 25, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.2s;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-address-container {
+    padding: 20px;
+  }
+}
+
+.ztarknet-modal-address-container:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ztarknet-modal-address-code {
+  font-size: 12px;
+  font-family: monospace;
+  word-break: break-all;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-address-code {
+    font-size: 14px;
+  }
+}
+
+.ztarknet-modal-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-button-group {
+    flex-direction: row;
+  }
+}
+
+.ztarknet-modal-button {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.ztarknet-modal-button:hover {
+  transform: scale(1.02);
+}
+
+.ztarknet-modal-button:active {
+  transform: scale(0.98);
+}
+
+.ztarknet-modal-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ztarknet-modal-button:disabled:hover {
+  transform: none;
+}
+
+.ztarknet-modal-button-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ztarknet-modal-button-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.ztarknet-modal-button-primary {
+  background: linear-gradient(to right, #50d2c1, #2ab09a);
+  color: #0f1a1f;
+  border: 1px solid rgba(80, 210, 193, 0.2);
+  box-shadow: 0 10px 15px -3px rgba(80, 210, 193, 0.2);
+}
+
+.ztarknet-modal-button-primary:hover {
+  background: linear-gradient(to right, rgba(80, 210, 193, 0.9), rgba(42, 176, 154, 0.9));
+  border-color: rgba(80, 210, 193, 0.3);
+}
+
+.ztarknet-modal-button-faucet {
+  background-color: rgba(80, 210, 193, 0.2);
+  color: #50d2c1;
+  border: 1px solid rgba(80, 210, 193, 0.2);
+}
+
+.ztarknet-modal-button-faucet:hover {
+  background-color: rgba(80, 210, 193, 0.3);
+  border-color: rgba(80, 210, 193, 0.3);
+}
+
+.ztarknet-modal-instructions {
+  padding-top: 8px;
+}
+
+.ztarknet-modal-instructions-list {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.ztarknet-modal-instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ztarknet-modal-instruction-number {
+  color: #50d2c1;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.ztarknet-modal-status-message {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-status-message {
+    margin-top: 32px;
+  }
+}
+
+.ztarknet-modal-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(80, 210, 193, 0.3);
+  border-top-color: #50d2c1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ztarknet-modal-status-text {
+  flex: 1;
+}
+
+.ztarknet-modal-status-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.ztarknet-modal-status-link {
+  font-size: 12px;
+  color: #50d2c1;
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.ztarknet-modal-status-link:hover {
+  color: rgba(80, 210, 193, 0.8);
+}
+
+.ztarknet-modal-error {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background-color: rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(4px);
+  font-size: 14px;
+  color: rgb(252, 165, 165);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-error {
+    margin-top: 32px;
+  }
+}
+
+.ztarknet-modal-error-message {
+  font-weight: 500;
+}
+
+.ztarknet-modal-error-retry {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ztarknet-modal-error-retry:hover {
+  color: white;
+}
+
+.ztarknet-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-actions {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 32px;
+  }
+}
+
+.ztarknet-modal-button-check {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.ztarknet-modal-button-check:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
+}
+
+.ztarknet-modal-button-check:active {
+  transform: scale(0.98);
+}
+
+.ztarknet-modal-button-check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ztarknet-modal-button-check:disabled:hover {
+  transform: none;
+}
+
+.ztarknet-modal-button-continue {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: linear-gradient(to right, #50d2c1, #2ab09a);
+  color: #0f1a1f;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(80, 210, 193, 0.2);
+}
+
+@media (min-width: 640px) {
+  .ztarknet-modal-button-continue {
+    margin-top: 32px;
+  }
+}
+
+.ztarknet-modal-button-continue:hover {
+  background: linear-gradient(to right, rgba(80, 210, 193, 0.9), rgba(42, 176, 154, 0.9));
+  transform: scale(1.02);
+}
+
+.ztarknet-modal-button-continue:active {
+  transform: scale(0.98);
+}
+
+.ztarknet-modal-icon-small {
+  width: 12px;
+  height: 12px;
+}
+
+.ztarknet-modal-icon-medium {
+  width: 16px;
+  height: 16px;
+}
+
+.ztarknet-modal-icon-large {
+  width: 20px;
+  height: 20px;
+}
+
+.ztarknet-modal-icon-error {
+  color: rgb(248, 113, 113);
+}
+
+.ztarknet-modal-icon-loading {
+  color: #50d2c1;
+  animation: spin 1s linear infinite;
+}
+
+.ztarknet-modal-icon-success {
+  color: #50d2c1;
+}

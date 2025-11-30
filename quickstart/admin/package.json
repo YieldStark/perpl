@@ -4,7 +4,27 @@
   "description": "Admin scripts for Ztarknet",
   "main": "topup.js",
   "scripts": {
-    "topup": "node topup.js"
+    "topup": "node topup.js",
+    "enable-market": "node enable-market.js",
+    "check-market": "node check-market.js",
+    "setup-account": "node setup-admin-account.js",
+    "setup-account-manual": "node setup-account-manual.js",
+    "create-admin": "node create-admin-account.js",
+    "create-admin-js": "node create-admin-js.js",
+    "use-existing": "node use-existing-account.js",
+    "get-key": "node get-private-key.js",
+    "grant-role": "node grant-admin-role.js",
+    "grant-role-simple": "node grant-admin-role-simple.js",
+    "grant-role-ztarknet": "node grant-role-with-ztarknet.js",
+    "grant-role-prompt": "node grant-role-ztarknet-prompt.js",
+    "use-ztarknet": "node use-ztarknet-admin.js",
+    "check-admin": "node check-role-store-admin.js",
+    "deploy-admin": "node deploy-admin-account.js",
+    "verify-market": "node verify-market-ready.js",
+    "check-storage": "node check-market-storage.js",
+    "deploy-all": "node deploy-all-contracts.js",
+    "deploy-all-js": "node deploy-all-starknetjs.js",
+    "redeploy-handler": "node redeploy-position-handler.js"
   },
   "dependencies": {
     "dotenv": "*",

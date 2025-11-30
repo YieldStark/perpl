@@ -13,6 +13,7 @@ import {
   ZtarknetWallet,
 } from '../../services/walletService';
 import { NETWORK } from '../../config/contracts';
+import '../../App.css';
 
 interface ProvisionModalProps {
   isOpen: boolean;
@@ -167,14 +168,22 @@ export function ZtarknetProvisionModal({
 
   const renderIcon = (stepId: string) => {
     if (state === 'error' && stepId !== 'generating') {
-      return <X className="w-4 h-4 text-red-400" />;
+      return (
+        <div className="ztarknet-modal-status-icon error">
+          <X className="ztarknet-modal-icon-small ztarknet-modal-icon-error" />
+        </div>
+      );
     }
 
     if (
       state === stepId ||
       (state === 'deploying' && stepId === 'awaiting_funding')
     ) {
-      return <Loader2 className="w-4 h-4 text-[#50d2c1] animate-spin" />;
+      return (
+        <div className="ztarknet-modal-status-icon loading">
+          <Loader2 className="ztarknet-modal-icon-small ztarknet-modal-icon-loading" />
+        </div>
+      );
     }
 
     if (
@@ -182,51 +191,65 @@ export function ZtarknetProvisionModal({
       (state === 'awaiting_funding' && stepId === 'generating') ||
       (state === 'deploying' && stepId === 'generating')
     ) {
-      return <Check className="w-4 h-4 text-[#50d2c1]" />;
+      return (
+        <div className="ztarknet-modal-status-icon success">
+          <Check className="ztarknet-modal-icon-small ztarknet-modal-icon-success" />
+        </div>
+      );
     }
 
-    return <div className="w-4 h-4 rounded-full border border-white/20" />;
+    return <div className="ztarknet-modal-status-icon pending" />;
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
-      <div className="bg-[#101d24] border border-white/10 rounded-3xl shadow-2xl w-full max-w-3xl p-8 relative text-white">
+    <div className="ztarknet-modal-overlay">
+      <div className="ztarknet-modal-container">
+        {/* Decorative gradient overlay */}
+        <div className="ztarknet-modal-gradient-overlay" />
+        
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/60 hover:text-white transition-colors"
+          className="ztarknet-modal-close-btn"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
 
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#50d2c1] via-[#2ab09a] to-[#0f1a1f] flex items-center justify-center shadow-lg">
-              <Wallet className="text-[#0a1216]" size={28} />
+        <div className="ztarknet-modal-content">
+          {/* Header Section */}
+          <div className="ztarknet-modal-header">
+            <div className="ztarknet-modal-icon">
+              <Wallet style={{ color: '#0a1216' }} size={32} />
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-semibold mb-1">Create a Ztarknet Trading Wallet</h2>
-              <p className="text-white/70 text-sm leading-relaxed">
+            <div className="ztarknet-modal-header-text">
+              <h2 className="ztarknet-modal-title">
+                Create a Ztarknet Trading Wallet
+              </h2>
+              <p className="ztarknet-modal-description">
                 This private wallet is pegged to your Argent address and stored locally. Fund it with faucet tokens, deploy it on Ztarknet, and start trading privately on Circuit.
               </p>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-5">
-            <div className="space-y-3 bg-white/5 rounded-2xl border border-white/10 p-4">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">Steps</p>
-              <div className="space-y-3">
+          {/* Main Content Grid */}
+          <div className="ztarknet-modal-grid">
+            {/* Steps Section */}
+            <div className="ztarknet-modal-section">
+              <p className="ztarknet-modal-section-title">Steps</p>
+              <div className="ztarknet-modal-steps">
                 {steps.map((step, idx) => (
-                  <div key={step.id} className="flex gap-3 items-center">
-                    <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/70">
+                  <div key={step.id} className="ztarknet-modal-step">
+                    <div className="ztarknet-modal-step-number">
                       {idx + 1}
                     </div>
-                    <div className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-3">
-                      {renderIcon(step.id)}
-                      <span className="text-sm">{step.label}</span>
+                    <div className="ztarknet-modal-step-content">
+                      <div className="ztarknet-modal-step-icon">
+                        {renderIcon(step.id)}
+                      </div>
+                      <span className="ztarknet-modal-step-label">{step.label}</span>
                       {step.id === 'deploying' && state === 'deploying' && attempt > 0 && (
-                        <span className="text-[11px] text-white/40 ml-auto">
+                        <span className="ztarknet-modal-step-attempt">
                           attempt {attempt.toString().padStart(2, '0')}
                         </span>
                       )}
@@ -236,37 +259,51 @@ export function ZtarknetProvisionModal({
               </div>
             </div>
 
+            {/* Address Section */}
             {wallet && (
-              <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4">
+              <div className="ztarknet-modal-section">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-white/50 mb-2">Ztarknet address</p>
-                  <div className="p-4 bg-[#0b1419] rounded-xl border border-white/10">
-                    <code className="text-xs font-mono break-all text-white">{wallet.address}</code>
+                  <p className="ztarknet-modal-section-title">Ztarknet Address</p>
+                  <div className="ztarknet-modal-address-container">
+                    <code className="ztarknet-modal-address-code">
+                      {wallet.address}
+                    </code>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="ztarknet-modal-button-group">
                   <button
                     onClick={handleCopyAddress}
-                    className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white flex items-center justify-center gap-2 text-xs"
+                    className="ztarknet-modal-button ztarknet-modal-button-secondary"
                   >
-                    <Copy size={14} />
+                    <Copy size={16} />
                     Copy address
                   </button>
                   <button
                     onClick={() =>
                       window.open(`https://faucet.ztarknet.cash/?address=${wallet.address}`, '_blank')
                     }
-                    className="flex-1 py-2 rounded-xl bg-[#50d2c1]/20 text-[#50d2c1] hover:bg-[#50d2c1]/25 flex items-center justify-center gap-2 text-xs"
+                    className="ztarknet-modal-button ztarknet-modal-button-faucet"
                   >
-                    <ExternalLink size={14} />
+                    <ExternalLink size={16} />
                     Open faucet
                   </button>
                 </div>
                 {state === 'awaiting_funding' && (
-                  <div className="text-[12px] text-white/70 space-y-1">
-                    <p>1. Copy the wallet address above.</p>
-                    <p>2. Fund it using the Ztarknet faucet (ETH/yUSD).</p>
-                    <p>3. Return here and press Deploy Wallet once funded.</p>
+                  <div className="ztarknet-modal-instructions">
+                    <div className="ztarknet-modal-instructions-list">
+                      <p className="ztarknet-modal-instruction-item">
+                        <span className="ztarknet-modal-instruction-number">1.</span>
+                        <span>Copy the wallet address above.</span>
+                      </p>
+                      <p className="ztarknet-modal-instruction-item">
+                        <span className="ztarknet-modal-instruction-number">2.</span>
+                        <span>Fund it using the Ztarknet faucet (ETH/yUSD).</span>
+                      </p>
+                      <p className="ztarknet-modal-instruction-item">
+                        <span className="ztarknet-modal-instruction-number">3.</span>
+                        <span>Return here and press Deploy Wallet once funded.</span>
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -274,52 +311,56 @@ export function ZtarknetProvisionModal({
           </div>
         </div>
 
+        {/* Status Messages */}
         {state === 'deploying' && (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 border-2 border-[#50d2c1]/30 border-t-[#50d2c1] rounded-full animate-spin" />
-            <div>
-              <p className="text-xs text-white/70">Deploying wallet on Ztarknet...</p>
+          <div className="ztarknet-modal-status-message">
+            <div className="ztarknet-modal-spinner" />
+            <div className="ztarknet-modal-status-text">
+              <p className="ztarknet-modal-status-title">Deploying wallet on Ztarknet...</p>
               {txHash && (
                 <a
                   href={`${NETWORK.EXPLORER_URL}/tx/${txHash}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] text-[#50d2c1] underline"
+                  className="ztarknet-modal-status-link"
                 >
                   View transaction
+                  <ExternalLink size={12} />
                 </a>
               )}
             </div>
           </div>
         )}
+        
         {state === 'error' && (
-          <div className="p-3 rounded border border-red-400/40 bg-red-500/5 text-xs text-red-300 space-y-2">
-            <div>{errorMessage}</div>
+          <div className="ztarknet-modal-error">
+            <div className="ztarknet-modal-error-message">{errorMessage}</div>
             <button
               onClick={() => setState(wallet?.deployed ? 'ready' : 'awaiting_funding')}
-              className="text-[10px] text-white/70 underline flex items-center gap-1"
+              className="ztarknet-modal-error-retry"
             >
-              <RefreshCw size={10} />
+              <RefreshCw size={12} />
               Try again
             </button>
           </div>
         )}
 
+        {/* Action Buttons */}
         {(state === 'awaiting_funding' || state === 'deploying') && wallet && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+          <div className="ztarknet-modal-actions">
             <button
               onClick={handleCheckStatus}
               disabled={isChecking || state === 'deploying'}
-              className="py-2 rounded border border-white/20 text-xs text-white/80 hover:bg-white/5 disabled:opacity-50 flex items-center justify-center gap-1"
+              className="ztarknet-modal-button-check"
             >
               {isChecking ? (
                 <>
-                  <Loader2 size={12} className="animate-spin" />
+                  <Loader2 size={16} className="ztarknet-modal-icon-loading" />
                   Checking...
                 </>
               ) : (
                 <>
-                  <RefreshCw size={12} />
+                  <RefreshCw size={16} />
                   Check Status
                 </>
               )}
@@ -327,9 +368,16 @@ export function ZtarknetProvisionModal({
             <button
               onClick={handleDeploy}
               disabled={state === 'deploying'}
-              className="py-2 rounded bg-[#50d2c1] text-[#0f1a1f] text-xs font-semibold hover:bg-[#50d2c1]/90 disabled:opacity-50"
+              className="ztarknet-modal-button ztarknet-modal-button-primary"
             >
-              {state === 'deploying' ? 'Deploying...' : 'Deploy Wallet'}
+              {state === 'deploying' ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Loader2 size={16} className="ztarknet-modal-icon-loading" />
+                  Deploying...
+                </span>
+              ) : (
+                'Deploy Wallet'
+              )}
             </button>
           </div>
         )}
@@ -337,7 +385,7 @@ export function ZtarknetProvisionModal({
         {state === 'ready' && (
           <button
             onClick={onClose}
-            className="w-full mt-4 py-2 rounded bg-[#50d2c1] text-[#0f1a1f] text-xs font-medium"
+            className="ztarknet-modal-button-continue"
           >
             Continue
           </button>

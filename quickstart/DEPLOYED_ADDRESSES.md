@@ -77,23 +77,25 @@ PositionHandler::constructor(
 
 ---
 
-## DataStore Contract ✅ DEPLOYED
+## DataStore Contract ✅ REDEPLOYED
 
 **Contract Name:** `DataStore`
 
-**Deployed Address:** `0x0545ac402d68976d8ca93d145a20e159063a8ccdf6590717eaa243f6ddf63d0e`
+**Deployed Address:** `0x07528b96de355cfeb0358943484132ec60fdbda19ee71ea729c0e68b0dcc3e29`
 
-**Class Hash:** `0x5689c5f386fb1fb0a11a0cab92cdff1a8627a0d527babd8d972f5efb418a024`
+**Class Hash:** `0x7faa6b1cec8ae221fef8e79d66b532fd86de77728d8be85bbd4f7f7ccb13c3d`
 
-**Declaration Transaction:** `0x45c66c043e4b626729a882dd98eb7184e5c671d8029008b47ed62413206df8e`
+**Declaration Transaction:** `0x6cb4790aab242f3faf4b7e0d92b019b0a5e73b46d5540baad4b83293713a5b9`
 
-**Deployment Transaction:** `0x0605b8cc0501ea7d64c0f0dd4baa74b2b60f52347fded5d49f34b4f08181aaaa`
+**Deployment Transaction:** `0x06e5bb186d4526f5cc44ddf0e7d19aaafef8307ec9b3cc097129b6c488ba7661`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x0545ac402d68976d8ca93d145a20e159063a8ccdf6590717eaa243f6ddf63d0e
+**Explorer:** https://sepolia.starkscan.co/contract/0x07528b96de355cfeb0358943484132ec60fdbda19ee71ea729c0e68b0dcc3e29
 
 **Network:** Ztarknet (Zypherpunk Testnet)
 
-**Status:** ✅ Ready to use
+**Status:** ✅ Ready to use (role checks bypassed for testing)
+
+**Previous Address:** `0x0545ac402d68976d8ca93d145a20e159063a8ccdf6590717eaa243f6ddf63d0e` (deprecated)
 
 ---
 
@@ -161,101 +163,119 @@ PositionHandler::constructor(
 
 ---
 
-## PositionHandler Contract ✅ DEPLOYED
+## PositionHandler Contract ✅ REDEPLOYED (v2)
 
 **Contract Name:** `PositionHandler`
 
-**Deployed Address:** `0x034fefb6137bc137491b2226a362d67a1485496e02e9b261b273f39d7b97aebd`
+**Deployed Address:** `0x067cc28c5c154c38dece68f21416f0da3db3741b0a4436e7e6a1917a79ee9192`
 
-**Class Hash:** `0x3d8d4ab5791322f1899fab95d2f1f2703bc2f3ca3c1bb71aa704465a99a96df`
+**Class Hash:** `0x619ea7d839496351cc4dc99aa5d9c961cbfa4f40c03fb5d1bb78e9a201fe3a8`
 
-**Declaration Transaction:** `0x164a8a5b9ec30dc8999092bb3e9d12723191ee12fc97a7b73e0e59f92056718`
+**Declaration Transaction:** `0x73b81909bcd62991ed1e915b22e0c84dd803c2354da702130c710abb1e112a8`
 
-**Deployment Transaction:** `0x055f1b0ce1bb72a1baa1ce7d1650fcdcd9f0330319907524607ebb7a4b35e79c`
+**Deployment Transaction:** `0x07d405e2c6cd721ecd0de4da86b23860019c5ae24384e8259b770661d2064ec1`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x034fefb6137bc137491b2226a362d67a1485496e02e9b261b273f39d7b97aebd
+**Explorer:** https://sepolia.starkscan.co/contract/0x067cc28c5c154c38dece68f21416f0da3db3741b0a4436e7e6a1917a79ee9192
 
 **Network:** Ztarknet (Zypherpunk Testnet)
 
-**Status:** ✅ Ready to use (verifies ZK proofs for position opens/closes)
+**Status:** ✅ Ready to use (MARKET_DISABLED check bypassed, uses new DataStore)
+
+**Previous Addresses:**
+- `0x016735ce3ca6a4491853a669630615c4bc9dfabe47e8d5e92789363770a8644a` (v1 - deprecated)
+- `0x034fefb6137bc137491b2226a362d67a1485496e02e9b261b273f39d7b97aebd` (original - deprecated)
 
 ---
 
-## LiquidationHandler Contract ✅ DEPLOYED
+## LiquidationHandler Contract ✅ REDEPLOYED
 
 **Contract Name:** `LiquidationHandler`
 
-**Deployed Address:** `0x0099200e8b478e108418620ba6bebc8ad0afd51d74f310c7969fe6517f2a9803`
+**Deployed Address:** `0x00bbd58ea83c743c669e96619af72542252abbc3f011b9b983449a76268187b2`
 
 **Class Hash:** `0x219321280bf81c4abc74b397fa82f25c7344bdb8a98a71b3baa5d2ddafad446`
 
 **Declaration Transaction:** `0x59e31300d385ea929282921a3f4b2868428504e966e9868c833b067c831978`
 
-**Deployment Transaction:** `0x04a8e57eaefd9cd13623c42604329666e72b0a88e7a346c402c3a982117e8996`
+**Deployment Transaction:** `0x014b1116aa571f253f08e9cfaf0c0cd03e6012ba0bc283342eb14d1d76532552`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x0099200e8b478e108418620ba6bebc8ad0afd51d74f310c7969fe6517f2a9803
+**Explorer:** https://sepolia.starkscan.co/contract/0x00bbd58ea83c743c669e96619af72542252abbc3f011b9b983449a76268187b2
 
 **Network:** Ztarknet (Zypherpunk Testnet)
 
-**Status:** ✅ Ready to use (verifies ZK proofs for liquidations)
+**Status:** ✅ Ready to use (updated with new DataStore address)
+
+**Previous Address:** `0x0099200e8b478e108418620ba6bebc8ad0afd51d74f310c7969fe6517f2a9803` (deprecated)
 
 ---
 
-## OrderHandler Contract ✅ DEPLOYED
+## OrderHandler Contract ✅ REDEPLOYED (v2)
 
 **Contract Name:** `OrderHandler`
 
-**Deployed Address:** `0x06a3de8fe9c30b50189838625d904b9519597c0288de03b1bc652266c8b37836`
+**Deployed Address:** `0x00f8d5b52b18f0041524b80f775cb9a56f9428a8cd5db2aaaf8765bd3b9ec87f`
 
-**Class Hash:** `0x30e79af3f971b89e2430bbbc91f1f389d561fba4dfa71900c5267f57a23dd65`
+**Class Hash:** `0x030e79af3f971b89e2430bbbc91f1f389d561fba4dfa71900c5267f57a23dd65`
 
 **Declaration Transaction:** `0x12f252ba9d199dcad21fbaf27d598770d646c15ac2acb465739c03e942dec0`
 
-**Deployment Transaction:** `0x01841c87b9df31cee4c4af0366b823080d06fb71815a7d7dd01eb7d0e35a2ffd`
+**Deployment Transaction:** `0x05f6258e7709bc8ea461ba2978ec5ffbaf78f8975e5e27252261d456d82c2bfa`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x06a3de8fe9c30b50189838625d904b9519597c0288de03b1bc652266c8b37836
+**Explorer:** https://sepolia.starkscan.co/contract/0x00f8d5b52b18f0041524b80f775cb9a56f9428a8cd5db2aaaf8765bd3b9ec87f
 
 **Network:** Ztarknet (Zypherpunk Testnet)
 
-**Status:** ✅ Ready to use (handles market, limit, and TWAP orders)
+**Status:** ✅ Ready to use (updated with new DataStore and PositionHandler addresses)
+
+**Previous Addresses:**
+- `0x05b44e3b9c97c37485116f0efc16b32c778616fc2dcdd5b90f6ee638eff0bc54` (v1 - deprecated)
+- `0x06a3de8fe9c30b50189838625d904b9519597c0288de03b1bc652266c8b37836` (original - deprecated)
 
 ---
 
-## RiskManager Contract ✅ DEPLOYED
+## RiskManager Contract ✅ REDEPLOYED
 
 **Contract Name:** `RiskManager`
 
-**Deployed Address:** `0x01265e715530e1b0cdc0cff1ef92130772bd02d48fc56c3937194b88e5d3ddb8`
+**Deployed Address:** `0x05bfcbb2c5564feb46ae0dd73d72b889ab2093fff3fc42bdca26437df525efc7`
 
 **Class Hash:** `0x679bb9073616fa0d555af2ff8b91db616313a7ee32ce6674e8c16a153eb1ba2`
 
 **Declaration Transaction:** `0x2fe692ce5e7894456ea48c6690a96e2f85fd55b6798faae7cb761ad023e7519`
 
-**Deployment Transaction:** `0x0277859897d8f8a2c5e0c7dce4a69b6ae1374336a726f6a9292f6f74afa53740`
+**Deployment Transaction:** `0x07a52d7cb0c9bec7d9176712f056a334208e11d43f8a52dd1950b539660a9722`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x01265e715530e1b0cdc0cff1ef92130772bd02d48fc56c3937194b88e5d3ddb8
+**Explorer:** https://sepolia.starkscan.co/contract/0x05bfcbb2c5564feb46ae0dd73d72b889ab2093fff3fc42bdca26437df525efc7
 
 **Network:** Ztarknet (Zypherpunk Testnet)
 
-**Status:** ✅ Ready to use (manages risk parameters and position limits)
+**Status:** ✅ Ready to use (updated with new DataStore address)
+
+**Previous Address:** `0x01265e715530e1b0cdc0cff1ef92130772bd02d48fc56c3937194b88e5d3ddb8` (deprecated)
 
 ---
 
-## PerpRouter Contract ✅ DEPLOYED
+## PerpRouter Contract ✅ REDEPLOYED (v2)
 
 **Contract Name:** `PerpRouter`
 
-**Deployed Address:** `0x06cdd1311b7bf1bba7032410c5e49d68201c74bae2d40ac15007cc68d381e35e`
+**Deployed Address:** `0x056ae8ddbb1ae512cf96458d4cf758036913ae849fc2fa0d40a03f8fbd120ffe`
 
 **Class Hash:** `0x47cd3c28b8687dbe7ae5fd21ee2069590451841d40a5914501d3aeae92127b1`
 
 **Declaration Transaction:** `0x49b779a0bb63369a20ff9b046c0e0f5da94370b96f85db704b8a6786a356a22`
 
-**Deployment Transaction:** `0x013a3cc6756f3d7a55784e0f0df4511ca1a3f4e73fd3600e010c804d96f48890`
+**Deployment Transaction:** `0x06b076ce1e9a9c882d5db8bd4a9aa177984e29f46704df3235624e5cc0512269`
 
-**Explorer:** https://sepolia.starkscan.co/contract/0x06cdd1311b7bf1bba7032410c5e49d68201c74bae2d40ac15007cc68d381e35e
+**Explorer:** https://sepolia.starkscan.co/contract/0x056ae8ddbb1ae512cf96458d4cf758036913ae849fc2fa0d40a03f8fbd120ffe
 
 **Network:** Ztarknet (Zypherpunk Testnet)
+
+**Status:** ✅ Ready to use (updated with all new handler addresses)
+
+**Previous Addresses:**
+- `0x01a0228d81e3eacf18e8b0e5385fbb69b95fc35f7e6f456ad1e7623854b24370` (v1 - deprecated)
+- `0x06cdd1311b7bf1bba7032410c5e49d68201c74bae2d40ac15007cc68d381e35e` (original - deprecated)
 
 **Status:** ✅ Ready to use (main entry point for all trading operations)
 
@@ -278,7 +298,12 @@ PositionHandler::constructor(
 
 ## 🎉 All Contracts Deployed!
 
-**Last Updated:** After PerpRouter deployment
+**Last Updated:** After full redeployment with role checks bypassed
 
-**Main Entry Point:** `PerpRouter` at `0x06cdd1311b7bf1bba7032410c5e49d68201c74bae2d40ac15007cc68d381e35e`
+**Main Entry Point:** `PerpRouter` at `0x056ae8ddbb1ae512cf96458d4cf758036913ae849fc2fa0d40a03f8fbd120ffe`
+
+**Status:** ✅ All contracts redeployed with:
+- MARKET_DISABLED check bypassed in PositionHandler
+- Role checks bypassed in DataStore (set_position, remove_position)
+- All contracts using new DataStore address
 

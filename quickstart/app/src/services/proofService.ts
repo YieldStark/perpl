@@ -2,6 +2,7 @@ import { Noir } from '@noir-lang/noir_js';
 import { DebugFileMap } from '@noir-lang/types';
 import { UltraHonkBackend } from '@aztec/bb.js';
 import { getZKHonkCallData, init } from 'garaga';
+import { cairo } from 'starknet';
 import { flattenFieldsAsArray } from '../helpers/proof';
 import { bytecode, abi } from '../assets/circuit.json';
 import vkUrl from '../assets/vk.bin?url';
@@ -34,20 +35,43 @@ function generateRandomSecret(): string {
 }
 
 /**
+ * Pragma Asset IDs - Exact felt252 values used by the contract
+ * These match the values defined in contracts/src/core/oracle.cairo
+ * CRITICAL: Using exact values ensures market_id matches what's stored in DataStore
+ */
+const PRAGMA_ASSET_IDS: Record<string, string> = {
+  'BTC/USD': '0x4254432f555344', // Pragma asset ID: 18669995996566340 (ASCII "BTC/USD")
+  'ETH/USD': '0x4554482f555344', // Pragma asset ID: 19514442401534788 (ASCII "ETH/USD")
+  'WBTC/USD': '0x574254432f555344', // Pragma asset ID: 6287680677296296772
+  'LORDS/USD': '0x4c4f5244532f555344', // Pragma asset ID: 1407668255603079598916
+  'STRK/USD': '0x5354524b2f555344', // Pragma asset ID: 6004514686061859652
+  'EKUBO/USD': '0x454b55424f2f555344', // Pragma asset ID: 1278253658919688033092
+  'DOG/USD': '0x444f472f555344', // Pragma asset ID: 19227465571717956
+};
+
+/**
  * Convert a string to its felt252 numeric representation
- * This is needed because Noir expects Field values to be numeric strings
+ * Uses exact Pragma asset IDs to ensure market_id matches what's stored in DataStore
+ * This is CRITICAL for avoiding MARKET_DISABLED errors
  */
 function stringToFelt252(str: string): string {
-  // Convert string to BigInt using the same method as Starknet
-  // Each character is converted to its ASCII value and combined
-  let result = BigInt(0);
-  for (let i = 0; i < str.length; i++) {
-    const charCode = BigInt(str.charCodeAt(i));
-    result = result * BigInt(256) + charCode;
+  // Use exact Pragma asset ID if available - this matches contract expectations
+  if (PRAGMA_ASSET_IDS[str]) {
+    const pragmaId = PRAGMA_ASSET_IDS[str];
+    // Ensure it's always returned as a hex string with 0x prefix
+    if (typeof pragmaId === 'string' && pragmaId.startsWith('0x')) {
+      return pragmaId.toLowerCase();
+    }
+    // Convert to hex if it's not already
+    return '0x' + BigInt(pragmaId).toString(16);
   }
-  // Ensure it fits in felt252 range (0 to 2^251 - 1)
-  const felt252Max = BigInt('0x800000000000011000000000000000000000000000000000000000000000000');
-  return (result % felt252Max).toString();
+  // Fallback to cairo.felt() for other strings
+  const felt = cairo.felt(str);
+  // cairo.felt() returns a decimal string, convert to hex
+  if (typeof felt === 'string' && !felt.startsWith('0x')) {
+    return '0x' + BigInt(felt).toString(16);
+  }
+  return felt;
 }
 
 export interface OpenPositionProofInputs {
@@ -87,8 +111,22 @@ export async function generateOpenPositionProof(
   const priceImpact = '0';
   const executionPrice = inputs.oraclePrice;
   
-  // Convert market_id string to felt252 numeric value for Noir
-  const marketIdFelt = stringToFelt252(inputs.marketId);
+  // CRITICAL: Force market_id to exact Pragma asset ID format
+  // This ensures it matches what's stored in DataStore
+  const expectedPragmaId = PRAGMA_ASSET_IDS[inputs.marketId];
+  if (!expectedPragmaId) {
+    throw new Error(`Unknown market_id: ${inputs.marketId}. Supported markets: ${Object.keys(PRAGMA_ASSET_IDS).join(', ')}`);
+  }
+  
+  // ALWAYS use the exact Pragma asset ID format (lowercase hex)
+  const marketIdFelt = expectedPragmaId.toLowerCase();
+  
+  console.log('🔍 Market ID (proofService):', {
+    inputMarketId: inputs.marketId,
+    marketIdFelt: marketIdFelt,
+    expectedPragmaId: expectedPragmaId,
+    usingExactFormat: true,
+  });
   
   // Prepare circuit inputs
   const circuitInput = {
@@ -169,8 +207,10 @@ export async function generateOpenPositionProof(
     1 // HonkFlavor.STARKNET
   );
 
-  // Extract proof and public inputs
-  // callData format: [proof_length, ...proof, ...public_inputs]
+  // CRITICAL: According to Starknet team, public inputs are already part of the proof structure
+  // We should use the FULL callData (minus the first element) as the proof
+  // The verifier will extract and return the public inputs if the proof is valid
+  // callData format: [proof_length, ...proof_with_hints_and_embedded_public_inputs]
   console.log('Raw callData from getZKHonkCallData:', {
     length: callData.length,
     first10: callData.slice(0, 10),
@@ -178,102 +218,53 @@ export async function generateOpenPositionProof(
     sampleValues: callData.slice(0, 5).map(v => ({ value: v, type: typeof v, string: String(v) }))
   });
   
-  const proofLength = Number(callData[0]);
+  // CRITICAL: Use callData.slice(1) directly like the example app
+  // getZKHonkCallData() already returns properly formatted felt252 values
+  // We should NOT convert them again as that can cause felt252 overflow
+  // callData format: [proof_length, ...proof_data_with_hints_and_embedded_public_inputs]
+  const fullProofData = callData.slice(1);
   
-  // Helper function to ensure value is a hex string with 0x prefix
-  // CRITICAL: Starknet.js requires ALL calldata values to be strings with 0x prefix
-  // This function MUST always return a string starting with '0x'
-  const toHexString = (v: any, index?: number): string => {
-    try {
-      // Handle null/undefined/empty
-      if (v === null || v === undefined || v === '') {
-        return '0x0';
-      }
-      
-      let num: bigint;
-      
-      // Convert to BigInt first, then to hex string
-      if (typeof v === 'string') {
-        // If already has 0x prefix, parse it
-        if (v.startsWith('0x') || v.startsWith('0X')) {
-          if (v.length === 2) return '0x0'; // Just "0x"
-          try {
-            num = BigInt(v);
-          } catch {
-            // Try without prefix
-            num = BigInt('0x' + v.slice(2));
-          }
-        } else {
-          // Try as decimal first
-          try {
-            num = BigInt(v);
-          } catch {
-            // Try as hex without prefix
-            num = BigInt('0x' + v);
-          }
-        }
-      } else if (typeof v === 'number') {
-        if (!Number.isFinite(v) || Number.isNaN(v)) {
-          console.warn(`Invalid number at index ${index}: ${v}, using 0x0`);
-          return '0x0';
-        }
-        num = BigInt(v);
-      } else if (typeof v === 'bigint') {
-        num = v;
-      } else {
-        // Try to convert to string then parse
-        const str = String(v);
-        if (str.startsWith('0x') || str.startsWith('0X')) {
-          num = BigInt(str);
-        } else {
-          num = BigInt(str);
-        }
-      }
-      
-      // Convert to hex string and ensure 0x prefix
-      const hex = num.toString(16);
-      return '0x' + hex;
-    } catch (error) {
-      console.error(`Error converting value at index ${index} to hex:`, v, error);
-      return '0x0';
-    }
-  };
-  
-  // Convert all proof values to hex strings (Starknet.js requires 0x-prefixed hex strings)
-  const rawProof = callData.slice(1, 1 + proofLength);
-  console.log('Raw proof values:', {
-    count: rawProof.length,
-    first5: rawProof.slice(0, 5),
-    types: rawProof.slice(0, 5).map(v => typeof v),
-    hasNonString: rawProof.some(v => typeof v !== 'string'),
-    sampleValues: rawProof.slice(0, 10).map((v, i) => ({
+  console.log('Raw full proof data from callData.slice(1):', {
+    count: fullProofData.length,
+    first5: fullProofData.slice(0, 5),
+    types: fullProofData.slice(0, 5).map(v => typeof v),
+    hasNonString: fullProofData.some(v => typeof v !== 'string'),
+    sampleValues: fullProofData.slice(0, 10).map((v, i) => ({
       index: i,
       value: v,
       type: typeof v,
       stringified: String(v),
-      isZero: v === 0 || v === '0' || v === '0x0' || v === '0x'
     }))
   });
   
-  // Convert all proof values to hex strings
-  // CRITICAL: Each value MUST be a string with 0x prefix for Starknet.js
-  const proofData = rawProof.map((v, i) => {
-    const hex = toHexString(v, i);
-    // Final validation - toHexString should always return a string with 0x prefix
-    if (typeof hex !== 'string' || !hex.startsWith('0x')) {
-      throw new Error(`Invalid hex conversion at proof index ${i}: got ${hex} (${typeof hex}) from ${v} (${typeof v})`);
+  // CRITICAL: Use callData.slice(1) directly without conversion
+  // The values from getZKHonkCallData() are already properly formatted as felt252
+  // Only ensure they're strings (they should already be)
+  const proofData = fullProofData.map((v, i) => {
+    // Ensure it's a string (should already be from garaga)
+    if (typeof v !== 'string') {
+      // Convert to string if needed (shouldn't happen but be safe)
+      const str = String(v);
+      if (str.startsWith('0x') || str.startsWith('0X')) {
+        return str.toLowerCase();
+      }
+      // If it's a number, convert to hex
+      try {
+        return '0x' + BigInt(v).toString(16);
+      } catch {
+        throw new Error(`Cannot convert proof value at index ${i} to hex: ${v} (${typeof v})`);
+      }
     }
-    return hex;
+    // Already a string - normalize to lowercase
+    return String(v).toLowerCase();
   });
   
-  console.log(`Converted ${proofData.length} proof values, first 5:`, proofData.slice(0, 5));
-  console.log('Proof data types:', proofData.slice(0, 5).map(v => typeof v));
+  console.log(`Using ${proofData.length} proof values directly from callData.slice(1), first 5:`, proofData.slice(0, 5));
   
   // Validate all proof values are strings with 0x prefix
   const invalidProof = proofData.filter(v => typeof v !== 'string' || !v.startsWith('0x'));
   if (invalidProof.length > 0) {
     console.error(`Found ${invalidProof.length} proof values without 0x prefix:`, invalidProof);
-    console.error('Invalid proof indices:', proofData.map((v, i) => ({ index: i, value: v, type: typeof v, hasPrefix: v.startsWith('0x') })).filter((_, i) => invalidProof.includes(proofData[i])));
     throw new Error(`Invalid proof data: ${invalidProof.length} values missing 0x prefix`);
   }
   
@@ -284,22 +275,120 @@ export async function generateOpenPositionProof(
   const commitment = execResult.returnValue.toString();
   
   // Ensure values are in hex format (Starknet.js expects hex strings)
-  const marketIdHex = marketIdFelt.startsWith('0x') ? marketIdFelt : '0x' + BigInt(marketIdFelt).toString(16);
-  const commitmentHex = commitment.startsWith('0x') ? commitment : '0x' + BigInt(commitment).toString(16);
+  // CRITICAL: Must be strings with 0x prefix
+  // cairo.felt() returns a hex string, so we just need to normalize it
+  let marketIdHex: string;
+  const trimmed = String(marketIdFelt).trim();
+  if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+    marketIdHex = trimmed.toLowerCase();
+  } else {
+    // If somehow not hex, convert it
+    try {
+      marketIdHex = '0x' + BigInt(trimmed).toString(16);
+    } catch {
+      // Fallback: try as hex without prefix
+      marketIdHex = '0x' + BigInt('0x' + trimmed).toString(16);
+    }
+  }
+  
+  // CRITICAL: Commitment is a 256-bit value that may exceed felt252 bounds (252 bits)
+  // We need to reduce it modulo the Stark prime to fit in felt252
+  // Stark prime: 0x800000000000011000000000000000000000000000000000000000000000000
+  const STARK_PRIME = BigInt('0x800000000000011000000000000000000000000000000000000000000000000');
+  
+  let commitmentBigInt: bigint;
+  if (typeof commitment === 'string') {
+    const trimmed = commitment.trim();
+    if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+      commitmentBigInt = BigInt(trimmed);
+    } else {
+      try {
+        commitmentBigInt = BigInt(trimmed);
+      } catch {
+        // Fallback: try as hex without prefix
+        commitmentBigInt = BigInt('0x' + trimmed);
+      }
+    }
+  } else {
+    commitmentBigInt = BigInt(commitment);
+  }
+  
+  // Reduce commitment modulo Stark prime to fit in felt252
+  const commitmentModulo = commitmentBigInt % STARK_PRIME;
+  const commitmentHex = '0x' + commitmentModulo.toString(16);
+  
+  // Final validation - ensure both are strings with 0x prefix
+  if (typeof marketIdHex !== 'string' || !marketIdHex.startsWith('0x')) {
+    throw new Error(`Invalid marketIdHex: ${marketIdHex} (${typeof marketIdHex})`);
+  }
+  if (typeof commitmentHex !== 'string' || !commitmentHex.startsWith('0x')) {
+    throw new Error(`Invalid commitmentHex: ${commitmentHex} (${typeof commitmentHex})`);
+  }
+  
+  // Verify commitment fits in felt252 (63 hex digits after 0x)
+  const commitmentHexDigits = commitmentHex.slice(2);
+  if (commitmentHexDigits.length > 63) {
+    throw new Error(`Commitment still exceeds felt252 bounds after modulo reduction: ${commitmentHexDigits.length} hex digits (max 63)`);
+  }
+  
+  // CRITICAL: Force market_id to exact format - use the Pragma asset ID directly
+  const expectedMarketId = PRAGMA_ASSET_IDS[inputs.marketId];
+  if (!expectedMarketId) {
+    throw new Error(`Unknown market_id: ${inputs.marketId}`);
+  }
+  
+  // ALWAYS use the exact Pragma asset ID (lowercase hex)
+  marketIdHex = expectedMarketId.toLowerCase();
   
   // Format public inputs as expected by the position handler: [market_id, commitment]
   const publicInputs = [marketIdHex, commitmentHex];
   
+  // Final validation log
+  console.log('✅ Final public_inputs (FORCED CORRECT FORMAT):', {
+    market_id: publicInputs[0],
+    commitment: publicInputs[1]?.substring(0, 20) + '...',
+    market_id_format: '0x4254432f555344 (BTC/USD)',
+    matches_expected: publicInputs[0].toLowerCase() === expectedMarketId.toLowerCase(),
+  });
+  
+  // CRITICAL: Final validation - ensure all proof values are strings with 0x prefix
+  const validatedProof = proofData.map((v, i) => {
+    if (typeof v !== 'string') {
+      console.error(`❌ Proof value at index ${i} is not a string:`, { value: v, type: typeof v });
+      throw new Error(`Proof value at index ${i} must be a string, got ${typeof v}`);
+    }
+    if (!v.startsWith('0x') && !v.startsWith('0X')) {
+      console.error(`❌ Proof value at index ${i} missing 0x prefix:`, { value: v });
+      throw new Error(`Proof value at index ${i} must start with 0x, got: "${v}"`);
+    }
+    return v.toLowerCase(); // Normalize to lowercase
+  });
+
+  // Validate public inputs
+  const validatedPublicInputs = publicInputs.map((v, i) => {
+    if (typeof v !== 'string') {
+      console.error(`❌ Public input at index ${i} is not a string:`, { value: v, type: typeof v });
+      throw new Error(`Public input at index ${i} must be a string, got ${typeof v}`);
+    }
+    if (!v.startsWith('0x') && !v.startsWith('0X')) {
+      console.error(`❌ Public input at index ${i} missing 0x prefix:`, { value: v });
+      throw new Error(`Public input at index ${i} must start with 0x, got: "${v}"`);
+    }
+    return v.toLowerCase(); // Normalize to lowercase
+  });
+
   console.log('Proof and public inputs:', {
-    proofLength: proofData.length,
-    publicInputsLength: publicInputs.length,
+    proofLength: validatedProof.length,
+    publicInputsLength: validatedPublicInputs.length,
     marketId: marketIdHex,
     commitment: commitmentHex.substring(0, 20) + '...',
+    allProofValid: validatedProof.every(v => typeof v === 'string' && v.startsWith('0x')),
+    allPublicInputsValid: validatedPublicInputs.every(v => typeof v === 'string' && v.startsWith('0x')),
   });
 
   return {
-    proof: proofData,
-    publicInputs,
+    proof: validatedProof,
+    publicInputs: validatedPublicInputs,
     commitment: execResult.returnValue.toString(),
     traderSecret: privateTraderSecret, // Return secret for storage
   };
@@ -393,11 +482,16 @@ export async function generateClosePositionProof(
     1 // HonkFlavor.STARKNET
   );
 
-  // Extract proof and public inputs
-  const proofLength = Number(callData[0]);
+  // CRITICAL: According to Starknet team, public inputs are already part of the proof structure
+  // We should use the FULL callData (minus the first element) as the proof
+  // The verifier will extract and return the public inputs if the proof is valid
+  // Use the full calldata (skip the first element which is proof_length)
+  const fullProofData = callData.slice(1);
   
   // Helper function to ensure value is a hex string with 0x prefix
   // CRITICAL: Starknet.js requires ALL calldata values to be strings with 0x prefix
+  // Note: This function is kept for potential future use but currently unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const toHexString = (v: any, index?: number): string => {
     try {
       // Handle null/undefined/empty
@@ -409,75 +503,110 @@ export async function generateClosePositionProof(
       
       // Convert to BigInt first, then to hex string
       if (typeof v === 'string') {
-        // If already has 0x prefix, parse it
-        if (v.startsWith('0x') || v.startsWith('0X')) {
-          if (v.length === 2) return '0x0'; // Just "0x"
-          num = BigInt(v);
+        const trimmed = v.trim();
+        
+        // If already has 0x prefix
+        if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+          if (trimmed.length === 2) return '0x0'; // Just "0x"
+          
+          // Remove prefix and validate it's valid hex
+          const hexPart = trimmed.slice(2);
+          if (!/^[0-9a-fA-F]+$/.test(hexPart)) {
+            console.error(`Invalid hex string at index ${index}: ${v}`);
+            return '0x0';
+          }
+          num = BigInt(trimmed);
         } else {
-          // Try as decimal first, then as hex
-          try {
-            num = BigInt(v);
-          } catch {
-            num = BigInt('0x' + v);
+          // No prefix - try parsing as decimal or hex
+          // First check if it looks like hex (only contains hex chars)
+          if (/^[0-9a-fA-F]+$/.test(trimmed)) {
+            // Try as hex first
+            try {
+              num = BigInt('0x' + trimmed);
+            } catch {
+              // Fall back to decimal
+              num = BigInt(trimmed);
+            }
+          } else {
+            // Contains non-hex chars, must be decimal
+            num = BigInt(trimmed);
           }
         }
       } else if (typeof v === 'number') {
         if (!Number.isFinite(v) || Number.isNaN(v)) {
+          console.warn(`Invalid number at index ${index}: ${v}, using 0x0`);
           return '0x0';
         }
-        num = BigInt(v);
+        num = BigInt(Math.floor(v));
       } else if (typeof v === 'bigint') {
         num = v;
       } else {
         // Try to convert to string then parse
-        const str = String(v);
-        num = str.startsWith('0x') || str.startsWith('0X') ? BigInt(str) : BigInt('0x' + str);
+        const str = String(v).trim();
+        if (str.startsWith('0x') || str.startsWith('0X')) {
+          num = BigInt(str);
+        } else {
+          num = BigInt(str);
+        }
       }
       
       // Convert to hex string and ensure 0x prefix
       const hex = num.toString(16);
       return '0x' + hex;
     } catch (error) {
-      console.error(`Error converting value at index ${index} to hex:`, v, error);
+      console.error(`Error converting value at index ${index} to hex:`, {
+        value: v,
+        type: typeof v,
+        error: error
+      });
       return '0x0';
     }
   };
   
-  // Convert all proof values to hex strings (Starknet.js requires 0x-prefixed hex strings)
-  const rawProof = callData.slice(1, 1 + proofLength);
-  console.log('Raw proof values:', {
-    count: rawProof.length,
-    first5: rawProof.slice(0, 5),
-    types: rawProof.slice(0, 5).map(v => typeof v),
-    hasNonString: rawProof.some(v => typeof v !== 'string'),
-    sampleValues: rawProof.slice(0, 10).map((v, i) => ({
+  // CRITICAL: Use callData.slice(1) directly like the example app (for closePosition)
+  // getZKHonkCallData() already returns properly formatted felt252 values
+  // We should NOT convert them again as that can cause felt252 overflow
+  console.log('Raw full proof data from callData.slice(1) (closePosition):', {
+    count: fullProofData.length,
+    first5: fullProofData.slice(0, 5),
+    types: fullProofData.slice(0, 5).map(v => typeof v),
+    hasNonString: fullProofData.some(v => typeof v !== 'string'),
+    sampleValues: fullProofData.slice(0, 10).map((v, i) => ({
       index: i,
       value: v,
       type: typeof v,
       stringified: String(v),
-      isZero: v === 0 || v === '0' || v === '0x0' || v === '0x'
     }))
   });
   
-  // Convert all proof values to hex strings
-  // CRITICAL: Each value MUST be a string with 0x prefix for Starknet.js
-  const proofData = rawProof.map((v, i) => {
-    const hex = toHexString(v, i);
-    // Final validation - toHexString should always return a string with 0x prefix
-    if (typeof hex !== 'string' || !hex.startsWith('0x')) {
-      throw new Error(`Invalid hex conversion at proof index ${i}: got ${hex} (${typeof hex}) from ${v} (${typeof v})`);
+  // CRITICAL: Use callData.slice(1) directly without conversion
+  // The values from getZKHonkCallData() are already properly formatted as felt252
+  // Only ensure they're strings (they should already be)
+  const proofData = fullProofData.map((v, i) => {
+    // Ensure it's a string (should already be from garaga)
+    if (typeof v !== 'string') {
+      // Convert to string if needed (shouldn't happen but be safe)
+      const str = String(v);
+      if (str.startsWith('0x') || str.startsWith('0X')) {
+        return str.toLowerCase();
+      }
+      // If it's a number, convert to hex
+      try {
+        return '0x' + BigInt(v).toString(16);
+      } catch {
+        throw new Error(`Cannot convert proof value at index ${i} to hex: ${v} (${typeof v})`);
+      }
     }
-    return hex;
+    // Already a string - normalize to lowercase
+    return String(v).toLowerCase();
   });
   
-  console.log(`Converted ${proofData.length} proof values, first 5:`, proofData.slice(0, 5));
-  console.log('Proof data types:', proofData.slice(0, 5).map(v => typeof v));
+  console.log(`Using ${proofData.length} proof values directly from callData.slice(1) (closePosition), first 5:`, proofData.slice(0, 5));
   
   // Validate all proof values are strings with 0x prefix
   const invalidProof = proofData.filter(v => typeof v !== 'string' || !v.startsWith('0x'));
   if (invalidProof.length > 0) {
     console.error(`Found ${invalidProof.length} proof values without 0x prefix:`, invalidProof);
-    console.error('Invalid proof indices:', proofData.map((v, i) => ({ index: i, value: v, type: typeof v, hasPrefix: v.startsWith('0x') })).filter((_, i) => invalidProof.includes(proofData[i])));
     throw new Error(`Invalid proof data: ${invalidProof.length} values missing 0x prefix`);
   }
   
@@ -488,16 +617,113 @@ export async function generateClosePositionProof(
   const outcomeCode = '0'; // For close position, outcome_code is 0 (success)
   
   // Ensure values are in hex format (Starknet.js expects hex strings)
-  const marketIdHex = marketIdFelt.startsWith('0x') ? marketIdFelt : '0x' + BigInt(marketIdFelt).toString(16);
-  const commitmentHex = commitment.startsWith('0x') ? commitment : '0x' + BigInt(commitment).toString(16);
-  const outcomeCodeHex = outcomeCode.startsWith('0x') ? outcomeCode : '0x' + BigInt(outcomeCode).toString(16);
+  // CRITICAL: Must be strings with 0x prefix
+  // cairo.felt() returns a hex string, so we just need to normalize it
+  let marketIdHex: string;
+  const trimmed = String(marketIdFelt).trim();
+  if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+    marketIdHex = trimmed.toLowerCase();
+  } else {
+    // If somehow not hex, convert it
+    try {
+      marketIdHex = '0x' + BigInt(trimmed).toString(16);
+    } catch {
+      // Fallback: try as hex without prefix
+      marketIdHex = '0x' + BigInt('0x' + trimmed).toString(16);
+    }
+  }
+  
+  // CRITICAL: Commitment is a 256-bit value that may exceed felt252 bounds (252 bits)
+  // We need to reduce it modulo the Stark prime to fit in felt252
+  // Stark prime: 0x800000000000011000000000000000000000000000000000000000000000000
+  const STARK_PRIME = BigInt('0x800000000000011000000000000000000000000000000000000000000000000');
+  
+  let commitmentBigInt: bigint;
+  if (typeof commitment === 'string') {
+    const trimmed = commitment.trim();
+    if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+      commitmentBigInt = BigInt(trimmed);
+    } else {
+      try {
+        commitmentBigInt = BigInt(trimmed);
+      } catch {
+        // Fallback: try as hex without prefix
+        commitmentBigInt = BigInt('0x' + trimmed);
+      }
+    }
+  } else {
+    commitmentBigInt = BigInt(commitment);
+  }
+  
+  // Reduce commitment modulo Stark prime to fit in felt252
+  const commitmentModulo = commitmentBigInt % STARK_PRIME;
+  const commitmentHex = '0x' + commitmentModulo.toString(16);
+  
+  // Verify commitment fits in felt252 (63 hex digits after 0x)
+  const commitmentHexDigits = commitmentHex.slice(2);
+  if (commitmentHexDigits.length > 63) {
+    throw new Error(`Commitment still exceeds felt252 bounds after modulo reduction: ${commitmentHexDigits.length} hex digits (max 63)`);
+  }
+  
+  let outcomeCodeHex: string;
+  if (typeof outcomeCode === 'string') {
+    const trimmed = outcomeCode.trim();
+    if (trimmed.startsWith('0x') || trimmed.startsWith('0X')) {
+      outcomeCodeHex = trimmed.toLowerCase();
+    } else {
+      try {
+        outcomeCodeHex = '0x' + BigInt(trimmed).toString(16);
+      } catch {
+        outcomeCodeHex = '0x' + BigInt('0x' + trimmed).toString(16);
+      }
+    }
+  } else {
+    outcomeCodeHex = '0x' + BigInt(outcomeCode).toString(16);
+  }
+  
+  // Final validation - ensure all are strings with 0x prefix
+  if (typeof marketIdHex !== 'string' || !marketIdHex.startsWith('0x')) {
+    throw new Error(`Invalid marketIdHex: ${marketIdHex} (${typeof marketIdHex})`);
+  }
+  if (typeof commitmentHex !== 'string' || !commitmentHex.startsWith('0x')) {
+    throw new Error(`Invalid commitmentHex: ${commitmentHex} (${typeof commitmentHex})`);
+  }
+  if (typeof outcomeCodeHex !== 'string' || !outcomeCodeHex.startsWith('0x')) {
+    throw new Error(`Invalid outcomeCodeHex: ${outcomeCodeHex} (${typeof outcomeCodeHex})`);
+  }
   
   // Format public inputs as expected by the contract: [market_id, commitment, outcome_code]
   const publicInputs = [marketIdHex, commitmentHex, outcomeCodeHex];
 
+  // CRITICAL: Final validation - ensure all proof values are strings with 0x prefix
+  const validatedProof = proofData.map((v, i) => {
+    if (typeof v !== 'string') {
+      console.error(`❌ Proof value at index ${i} is not a string:`, { value: v, type: typeof v });
+      throw new Error(`Proof value at index ${i} must be a string, got ${typeof v}`);
+    }
+    if (!v.startsWith('0x') && !v.startsWith('0X')) {
+      console.error(`❌ Proof value at index ${i} missing 0x prefix:`, { value: v });
+      throw new Error(`Proof value at index ${i} must start with 0x, got: "${v}"`);
+    }
+    return v.toLowerCase(); // Normalize to lowercase
+  });
+
+  // Validate public inputs
+  const validatedPublicInputs = publicInputs.map((v, i) => {
+    if (typeof v !== 'string') {
+      console.error(`❌ Public input at index ${i} is not a string:`, { value: v, type: typeof v });
+      throw new Error(`Public input at index ${i} must be a string, got ${typeof v}`);
+    }
+    if (!v.startsWith('0x') && !v.startsWith('0X')) {
+      console.error(`❌ Public input at index ${i} missing 0x prefix:`, { value: v });
+      throw new Error(`Public input at index ${i} must start with 0x, got: "${v}"`);
+    }
+    return v.toLowerCase(); // Normalize to lowercase
+  });
+
   return {
-    proof: proofData,
-    publicInputs,
+    proof: validatedProof,
+    publicInputs: validatedPublicInputs,
     commitment: execResult.returnValue.toString(),
   };
 }
