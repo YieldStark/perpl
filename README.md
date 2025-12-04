@@ -307,4 +307,4 @@ For hackathon judges: All code, documentation, and demo are ready for review. Th
 
 ---
 
-**Built for Zypherpunk Hackathon 2024** 🚀
+**Built for Zypherpunk Hackathon 2025** 🚀
